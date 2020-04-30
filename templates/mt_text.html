@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Machine Translation</title>
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/quill.mt.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/quill-better-table.css') }}" rel="stylesheet">
+
+    <script src="{{ url_for('static', filename='js/sparkles.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.4.1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/quill.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/quill-cursors.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/quill-better-table.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/mt_common_init.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mt_text_config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mt_text.js') }}"></script>
+
+    <style>
+        .hamburger:after {
+            content: '\2630';
+            font-size: 1.5em;
+            color: #888;
+        }
+
+        .hamburger:focus {
+            {#outline: none !important;#}
+            box-shadow: none !important;
+        }
+    </style>
+
+</head>
+
+<body style="background-color: #eee">
+
+<!--navbar-->
+<nav class="navbar navbar-expand-lg bg-white" id="nav_bar"
+     style="height: calc(1.25rem + 38px); border-bottom: 1px solid #ccc">
+    <div class="d-flex">
+        <div class="nav-header">
+            <a class="navbar-brand btn btn-outline-primary" id="bookmarklet"
+               href="{{ bookmarklet }}">Text Translation
+            </a>
+        </div>
+        <span class="navbar-text d-none d-lg-block text-muted">
+            <em class="small">(drag this button to your bookmarks bar as a shortcut to translate selected text)</em>
+        </span>
+        <span class="navbar-text ml-4 text-primary" id="sparkle_text">
+            <small><strong><em>Double-click to turn off sparkles</em></strong></small>
+        </span>
+    </div>
+
+    <div class="nav-item ml-auto dropdown">
+        <button class="btn nav-link hamburger p-0" type="button" id="menu_button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="menu_button">
+            <a class="dropdown-item disabled" href="#">Hello, {{ username }}!</a>
+            <a class="dropdown-item active" href="/app/text">Translate Text</a>
+            <a class="dropdown-item" href="/app/large">Translate Text (large)</a>
+            <a class="dropdown-item" href="/app/dual">Translate Text (2 outputs)</a>
+            <a class="dropdown-item" href="/app/file">Translate Files</a>
+        </div>
+    </div>
+</nav>
+
+<!--this div's style prevents webpage content jumping when the scrollbar appears -->
+<div class="container-fluid"
+     style="margin-left: calc(100vw - 100%); margin-right: 0; width:calc( 100% - (100vw - 100%))">
+    <div class="container">
+
+        <!--translation languages-->
+        <div class="row">
+            <div class="col-md-6 col-sm-12 mt-3">
+                <div class="container">
+
+                    <!--input language-->
+                    <div class="row">
+                        <div class="btn-group btn-group-toggle rounded bg-white shadow-sm" data-toggle="buttons">
+                            <label class="btn btn-outline-primary active">
+                                <input type="radio" name="input_language" id="input_auto"
+                                       value="auto" checked autocomplete="off">Auto
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_en"
+                                       value="en" autocomplete="off">English
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_id"
+                                       value="id" autocomplete="off">Indon
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_zh"
+                                       value="zh" autocomplete="off">Chinese
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_ms"
+                                       value="ms" autocomplete="off">Malay
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_ms"
+                                       value="ar" autocomplete="off">Arabic
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_ms"
+                                       value="vi" autocomplete="off">Viet
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="input_language" id="input_ms"
+                                       value="th" autocomplete="off">Thai
+                            </label>
+                        </div>
+                    </div>
+
+                    <!--input language auto-detect notification-->
+                    <div class="row">
+                        <p class="small align-text-top font-italic mb-0 ml-3" id="detected_language_notification">
+                            &nbsp;
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!--output languages-->
+            <div class="col-md-6 col-sm-12 mt-3">
+                <!--one group for english output-->
+                <div class="btn-group btn-group-toggle float-right rounded bg-white shadow-sm" id="output_english"
+                     data-toggle="buttons">
+                    <label class="btn btn-outline-primary active">
+                        <input type="radio" name="output_language" id="output_en"
+                               value="en" checked autocomplete="off">English
+                    </label>
+                </div>
+
+                <!--another group for every other language-->
+                <div class="btn-group btn-group-toggle float-right rounded bg-white shadow-sm" id="output_other"
+                     data-toggle="buttons">
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="output_language"
+                               value="id" autocomplete="off">Indon
+                    </label>
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="output_language" id="output_zh"
+                               value="zh" autocomplete="off">Chinese
+                    </label>
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="output_language"
+                               value="ms" autocomplete="off">Malay
+                    </label>
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="output_language"
+                               value="ar" autocomplete="off">Arabic
+                    </label>
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="output_language"
+                               value="vi" autocomplete="off">Viet
+                    </label>
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="output_language"
+                               value="th" autocomplete="off">Thai
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!--alerts-->
+        <div class="row">
+            <!--left half-->
+            <div class="col-sm-6 col-xs-12">
+            </div>
+
+            <!--right half-->
+            <div class="col-sm-6 col-xs-12">
+                <div class="alert alert-success mt-4 mb-0" role="alert" id="translating_alert"
+                     style="display: none"></div>
+            </div>
+        </div>
+
+
+        <!--textarea boxes-->
+        <div class="row">
+
+            <!--input quill-->
+            <div class="col-md-6 col-sm-12">
+                <div class="input-group">
+                    <div class="container-fluid mt-4 bg-white shadow-sm" style="padding:0">
+                        <div id="translation_input" style="height: 40vh"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!--output box-->
+            <div class="col-md-6 col-sm-12">
+                <div class=input-group">
+                    <div class="mt-4 mr-0 ml-0 bg-white shadow-sm">
+                        <div id="translation_output" style="height: calc(40vh + 43px)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<p>&nbsp;</p>
+</body>
+</html>

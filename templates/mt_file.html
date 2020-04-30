@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Machine Translation</title>
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/dropzone.css') }}" rel="stylesheet">
+
+    <script src="{{ url_for('static', filename='js/sparkles.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.4.1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/spark-md5.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/list.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/mt_common_init.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mt_file_config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mt_file.js') }}"></script>
+
+    <style>
+        .hamburger:after {
+            content: '\2630';
+            font-size: 1.5em;
+            color: #888;
+        }
+
+        .hamburger:focus {
+            {#outline: none !important;#}
+            box-shadow: none !important;
+        }
+    </style>
+
+</head>
+
+<body style="background-color: #eee">
+
+<!--navbar-->
+<nav class="navbar navbar-expand-lg bg-white" id="nav_bar"
+     style="height: calc(1.25rem + 38px); border-bottom: 1px solid #ccc">
+    <div class="d-flex">
+        <div class="nav-header">
+            <a class="navbar-brand btn btn-outline-primary" id="bookmarklet"
+               href="{{ bookmarklet }}">File Translation
+            </a>
+        </div>
+        <span class="navbar-text ml-4 text-primary" id="sparkle_text">
+            <small><strong><em>Double-click to turn off sparkles</em></strong></small>
+        </span>
+    </div>
+
+    <div class="nav-item ml-auto dropdown">
+        <button class="btn nav-link hamburger p-0" type="button" id="menu_button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="menu_button">
+            <a class="dropdown-item disabled" href="#">Hello, {{ username }}!</a>
+            <a class="dropdown-item" href="/app/text">Translate Text</a>
+            <a class="dropdown-item" href="/app/large">Translate Text (large)</a>
+            <a class="dropdown-item" href="/app/dual">Translate Text (2 outputs)</a>
+            <a class="dropdown-item active" href="/app/file">Translate Files</a>
+        </div>
+    </div>
+</nav>
+
+<!--this div's style prevents webpage content jumping when the scrollbar appears -->
+<div class="container-fluid"
+     style="margin-left: calc(100vw - 100%); margin-right: 0; width:calc( 100% - (100vw - 100%))">
+    <div class="container">
+
+        <!--spacer of top 10% height-->
+        <div class="collapse in show" id="top_10_spacer">
+            <div style="height: 10vh"></div>
+        </div>
+
+        <!--spacer of top 20% height-->
+        <div class="collapse in show" id="top_15_spacer">
+            <div style="height: 15vh"></div>
+        </div>
+
+        <!--language selection interface-->
+        <div class="card mt-4 shadow-sm">
+            <!--header-->
+            <div class="card-header bg-primary text-white text-center collapse in show" id="input_language_header">
+                Input Language
+            </div>
+            <div class="card-body">
+
+                <!--input language-->
+                <div class="container text-center">
+                    <div class="btn-group btn-group-toggle rounded bg-white" data-toggle="buttons">
+
+                        <!--suppress CssInvalidFunction -->
+                        <label class="btn btn-outline-primary" style="min-width: min(10rem, 10vw)">
+                            <input type="radio" name="input_language" id="input_id"
+                                   value="id" autocomplete="off">Indon
+                        </label>
+                        <!--suppress CssInvalidFunction -->
+                        <label class="btn btn-outline-primary" style="min-width: min(10rem, 10vw)">
+                            <input type="radio" name="input_language" id="input_zh"
+                                   value="zh" autocomplete="off">Chinese
+                        </label>
+                        <!--suppress CssInvalidFunction -->
+                        <label class="btn btn-outline-primary" style="min-width: min(10rem, 10vw)">
+                            <input type="radio" name="input_language" id="input_ms"
+                                   value="ms" autocomplete="off">Malay
+                        </label>
+                        <!--suppress CssInvalidFunction -->
+                        <label class="btn btn-outline-primary" style="min-width: min(10rem, 10vw)">
+                            <input type="radio" name="input_language" id="input_ms"
+                                   value="ar" autocomplete="off">Arabic
+                        </label>
+                        <!--suppress CssInvalidFunction -->
+                        <label class="btn btn-outline-primary" style="min-width: min(10rem, 10vw)">
+                            <input type="radio" name="input_language" id="input_ms"
+                                   value="vi" autocomplete="off">Viet
+                        </label>
+                        <!--suppress CssInvalidFunction -->
+                        <label class="btn btn-outline-primary" style="min-width: min(10rem, 10vw)">
+                            <input type="radio" name="input_language" id="input_ms"
+                                   value="th" autocomplete="off">Thai
+                        </label>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!--file selection interface-->
+        <div class="collapse" id="upload_card">
+            <div class="card mt-4 shadow-sm">
+                <!--header-->
+                <div class="card-header bg-primary text-white text-center collapse in show" id="upload_header">
+                    Upload Files
+                </div>
+                <div class="card-body">
+
+                    <!--dropzone upload box-->
+                    <div class="container-flex">
+                        <div class="dropzone bg-light" id="dropzone_box"
+                             style="border-style: dotted; border-radius: 0.25rem;">
+                            <div class="dz-message text-muted m-0" data-dz-message>
+
+                                <!--center this message somehow-->
+                                <table style="min-height: 100px; min-width: 100%">
+                                    <tr>
+                                        <td class="align-middle">
+                                            <em class="text-center">Drop files to upload or click here to select
+                                                files</em>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!--file download interface-->
+        <div class="collapse" id="download_card">
+            <div class="card mt-4 shadow-sm">
+                <!--header-->
+                <div class="card-header bg-primary text-white text-center collapse in show" id="download_header">
+                    Download Files
+                </div>
+
+                <!--downloadable items-->
+                <div id="download_list">
+                    <ul class="list list-group list-group-flush"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<p>&nbsp;</p>
+</body>
+</html>

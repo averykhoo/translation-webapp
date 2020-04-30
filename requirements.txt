@@ -1,0 +1,7 @@
+beautifulsoup4
+cld2-cffi
+flask
+ftfy
+langid
+requests
+waitress
